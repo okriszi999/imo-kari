@@ -2,10 +2,11 @@
   "name": "imochristmas",
   "private": true,
   "type": "module",
+  "main": "api/index.ts",
   "scripts": {
-    "dev": "NODE_ENV=development node --env-file-if-exists=.env --watch --import remix/node-tsx server.ts",
+    "dev": "NODE_ENV=development node --env-file-if-exists=.env --watch --import remix/node-tsx local-server.ts",
     "hmr": "NODE_ENV=development node --env-file-if-exists=.env hmr.ts",
-    "start": "NODE_ENV=production node --env-file-if-exists=.env --import remix/node-tsx server.ts",
+    "start": "NODE_ENV=production node --env-file-if-exists=.env --import remix/node-tsx local-server.ts",
     "test": "NODE_ENV=test remix test",
     "typecheck": "tsc --noEmit"
   },

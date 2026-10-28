@@ -1,6 +1,7 @@
 node_modules/
 .vercel/
 .env
+.env.local
 db/*.sqlite
 db/*.sqlite-*
 tmp/
