@@ -4,11 +4,6 @@ import { describe, it } from 'remix/test'
 import { createAppRouter } from '../router.ts'
 import { routes } from '../routes.ts'
 
-let sentEmails: {
-  readonly email: string
-  readonly giverName: string
-  readonly recipientName: string
-}[] = []
 let savedWishlist: readonly { readonly name: string; readonly url: string }[] = []
 
 const portal = {
@@ -27,9 +22,6 @@ const router = createAppRouter({
   findPortal(email) {
     return email.toLowerCase() === portal.giverEmail ? portal : null
   },
-  async sendAssignmentEmail(assignment) {
-    sentEmails.push(assignment)
-  },
   saveWishlist(_email, items) {
     savedWishlist = items
     return true
@@ -42,7 +34,6 @@ const router = createAppRouter({
       requestedAt: 123,
     }
   },
-  async sendHintNudgeEmail() {},
   setPin: () => true,
 })
 
@@ -72,8 +63,7 @@ describe('root controller', () => {
     assert.match(html, /stranger@example\.com/)
   })
 
-  it('loads the private reveal experience without emailing before the reveal click', async () => {
-    sentEmails = []
+  it('loads the private reveal experience', async () => {
     let formData = new FormData()
     formData.set('email', 'JUCUS@example.com')
 
@@ -89,7 +79,6 @@ describe('root controller', () => {
     assert.match(html, /Jucus/)
     assert.match(html, /Mimo/)
     assert.match(html, /christmas-experience/)
-    assert.deepEqual(sentEmails, [])
   })
 
   it('requires and verifies the PIN on repeat visits', async () => {
@@ -145,44 +134,6 @@ describe('root controller', () => {
     assert.equal(response.status, 200)
   })
 
-  it('emails the assignment only from the reveal endpoint', async () => {
-    sentEmails = []
-    let formData = new FormData()
-    formData.set('email', portal.giverEmail)
-
-    let response = await router.fetch(
-      new Request(new URL(routes.revealEmail.href(), 'http://localhost'), {
-        method: 'POST',
-        body: formData,
-      }),
-    )
-
-    assert.equal(response.status, 200)
-    assert.deepEqual(sentEmails, [
-      { email: portal.giverEmail, giverName: 'Jucus', recipientName: 'Mimo' },
-    ])
-  })
-
-  it('keeps the visual reveal successful when email delivery fails', async () => {
-    let failingRouter = createAppRouter({
-      findPortal: () => portal,
-      sendAssignmentEmail: async () => {
-        throw new Error('Email service unavailable')
-      },
-    })
-    let formData = new FormData()
-    formData.set('email', 'jucus@example.com')
-
-    let response = await failingRouter.fetch(
-      new Request(new URL(routes.revealEmail.href(), 'http://localhost'), {
-        method: 'POST',
-        body: formData,
-      }),
-    )
-
-    assert.equal(response.status, 502)
-  })
-
   it('saves a validated wishlist', async () => {
     savedWishlist = []
     let formData = new FormData()
@@ -215,7 +166,7 @@ describe('root controller', () => {
     assert.equal(response.status, 400)
   })
 
-  it('sends an anonymous hint nudge', async () => {
+  it('records an anonymous hint nudge', async () => {
     let formData = new FormData()
     formData.set('email', portal.giverEmail)
 
@@ -227,6 +178,6 @@ describe('root controller', () => {
     )
 
     assert.equal(response.status, 200)
-    assert.deepEqual(await response.json(), { ok: true, created: true, emailSent: true })
+    assert.deepEqual(await response.json(), { ok: true, created: true })
   })
 })

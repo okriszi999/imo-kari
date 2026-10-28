@@ -78,7 +78,6 @@ export function HomePage(handle: Handle<HomePageProps>) {
               needsPinSetup={state.needsPinSetup}
               skipIntro={state.skipIntro}
               setPinHref={routes.setPin.href()}
-              revealEmailHref={routes.revealEmail.href()}
               wishlistHref={routes.wishlist.href()}
               hintRequestHref={routes.hintRequest.href()}
             />

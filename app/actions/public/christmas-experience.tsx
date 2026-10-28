@@ -13,7 +13,6 @@ interface ChristmasExperienceProps {
   readonly hasHintRequest: boolean
   readonly hintRequested: boolean
   readonly countdownDate: string
-  readonly revealEmailHref: string
   readonly wishlistHref: string
   readonly hintRequestHref: string
   readonly needsPinSetup: boolean
@@ -36,7 +35,6 @@ export const ChristmasExperience = clientEntry(
     let hasHintRequest = handle.props.hasHintRequest
     let hintRequested = handle.props.hintRequested
     let hintStatus = ''
-    let emailStatus = ''
     let needsPinSetup = handle.props.needsPinSetup
     let pinStatus = ''
     let audioContext: AudioContext | undefined
@@ -64,29 +62,14 @@ export const ChristmasExperience = clientEntry(
       typingTimer = window.setTimeout(typeNextCharacter, 500)
     }
 
-    async function openMystery(sendEmail: boolean): Promise<void> {
+    async function openMystery(): Promise<void> {
       phase = 'opening'
       playRevealChime()
       await handle.update()
-      if (sendEmail) void emailAssignment()
       openingTimer = window.setTimeout(() => {
         phase = 'revealed'
         void handle.update()
       }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1050)
-    }
-
-    async function emailAssignment(): Promise<void> {
-      let formData = new FormData()
-      formData.set('email', handle.props.giverEmail)
-      try {
-        let response = await fetch(handle.props.revealEmailHref, { method: 'POST', body: formData })
-        emailStatus = response.ok
-          ? 'A titkot elküldtük az e-mail-címedre is.'
-          : 'A név megjelent, de az e-mailt nem sikerült elküldeni.'
-      } catch {
-        emailStatus = 'A név megjelent, de az e-mailt nem sikerült elküldeni.'
-      }
-      void handle.update()
     }
 
     function playRevealChime(): void {
@@ -144,7 +127,7 @@ export const ChristmasExperience = clientEntry(
                 type="button"
                 mix={[
                   glowingButtonStyle,
-                  on<HTMLButtonElement, 'click'>('click', () => openMystery(true)),
+                  on<HTMLButtonElement, 'click'>('click', () => openMystery()),
                 ]}
               >
                 <span aria-hidden="true">✦</span>
@@ -167,7 +150,7 @@ export const ChristmasExperience = clientEntry(
                 envelopeButtonStyle,
                 phase === 'opening' && openingEnvelopeStyle,
                 on<HTMLButtonElement, 'click'>('click', () => {
-                  if (phase === 'hidden') void openMystery(false)
+                  if (phase === 'hidden') void openMystery()
                 }),
               ]}
             >
@@ -201,7 +184,6 @@ export const ChristmasExperience = clientEntry(
               Tartsd titokban! Válassz valami szívhez szólót, csomagold szeretettel, és kezdődhet a
               találgatás.
             </p>
-            {emailStatus && <p role="status" mix={statusTextStyle}>{emailStatus}</p>}
             <div className="christmas-print-hide" mix={actionRowStyle}>
               <button
                 type="button"
@@ -308,7 +290,7 @@ export const ChristmasExperience = clientEntry(
                 on<HTMLButtonElement, 'click'>('click', async () => {
                   let formData = new FormData()
                   formData.set('email', handle.props.giverEmail)
-                  hintStatus = 'Névtelen emlékeztető küldése…'
+                  hintStatus = 'Névtelen jelzés rögzítése…'
                   await handle.update()
                   try {
                     let response = await fetch(handle.props.hintRequestHref, {
@@ -317,10 +299,10 @@ export const ChristmasExperience = clientEntry(
                     })
                     hintRequested = response.ok
                     hintStatus = response.ok
-                      ? `${handle.props.recipientName} megkapta a névtelen emlékeztetőt.`
-                      : 'Az emlékeztetőt nem sikerült elküldeni.'
+                      ? `${handle.props.recipientName} a következő belépéskor látni fogja a névtelen jelzést.`
+                      : 'A jelzést nem sikerült rögzíteni.'
                   } catch {
-                    hintStatus = 'Az emlékeztetőt nem sikerült elküldeni.'
+                    hintStatus = 'A jelzést nem sikerült rögzíteni.'
                   }
                   await handle.update()
                 }),
