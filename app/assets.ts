@@ -2,7 +2,7 @@ import { createAssetServer } from 'remix/assets'
 import { componentHmr } from 'remix/component-hmr/assets'
 
 const rootDir = process.cwd()
-const nodeEnv = process.env.NODE_ENV ?? 'development'
+const nodeEnv = process.env.NODE_ENV ?? (process.env.VERCEL ? 'production' : 'development')
 const isDevelopment = nodeEnv === 'development'
 const isHmr = Boolean(isDevelopment && process.env.REMIX_NODE_HMR)
 
